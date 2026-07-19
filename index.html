@@ -1,315 +1,77 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="sv">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SRT Synkverktyg</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Lyrics Video Maker</title>
 <style>
-  :root{
-    --bg:#0f172a; --panel:#111827; --panel2:#1f2937; --text:#f8fafc;
-    --muted:#94a3b8; --accent:#22c55e; --danger:#ef4444; --line:#334155;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-  header{padding:18px 22px;border-bottom:1px solid var(--line);background:#0b1220;position:sticky;top:0;z-index:5}
-  h1{margin:0;font-size:22px}
-  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px;min-height:calc(100vh - 67px)}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
-  label{display:block;font-weight:700;margin:12px 0 6px}
-  input[type=file], textarea, input[type=text], input[type=number]{
-    width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);
-    border-radius:9px;padding:10px
-  }
-  textarea{min-height:280px;resize:vertical;line-height:1.45}
-  button{
-    border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;
-    background:#334155;color:#fff
-  }
-  button.primary{background:var(--accent);color:#06230f}
-  button.danger{background:var(--danger)}
-  button:disabled{opacity:.45;cursor:not-allowed}
-  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  audio{width:100%;margin-top:12px}
-  .hint{color:var(--muted);font-size:13px;line-height:1.4}
-  .status{padding:10px;border:1px dashed var(--line);border-radius:9px;margin-top:12px;color:var(--muted)}
-  .lyrics{display:flex;flex-direction:column;gap:8px}
-  .line{
-    display:grid;grid-template-columns:56px 1fr 120px 120px 92px;gap:8px;align-items:center;
-    padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)
-  }
-  .line.active{outline:2px solid var(--accent);background:#17351f}
-  .line.done{opacity:.82}
-  .num{color:var(--muted);font-variant-numeric:tabular-nums}
-  .txt{font-size:18px}
-  .time{font-family:monospace;font-size:14px}
-  .line button{padding:8px 10px}
-  .kbd{font-family:monospace;background:#020617;border:1px solid var(--line);border-radius:5px;padding:2px 5px}
-  @media(max-width:900px){
-    .wrap{grid-template-columns:1fr}
-    .line{grid-template-columns:44px 1fr}
-    .time,.line button{grid-column:auto}
-  }
+:root{--bg:#08111f;--card:#111c2d;--line:#334155;--text:#f8fafc;--muted:#9fb0c5;--green:#22c55e;--red:#ef4444}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#07101e,#111827);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:1100px;margin:auto;padding:16px}.top{display:flex;justify-content:space-between;gap:12px;align-items:end;flex-wrap:wrap}h1{margin:4px 0;font-size:26px}.sub{color:var(--muted);margin:0 0 15px;font-size:14px}
+.grid{display:grid;grid-template-columns:370px 1fr;gap:14px}.card{background:rgba(17,28,45,.96);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:14px;box-shadow:0 14px 40px #0003}
+label{display:block;color:#cbd5e1;font-size:13px;font-weight:700;margin:10px 0 6px}input,select,button,textarea{width:100%;border-radius:11px;border:1px solid var(--line);background:#1b2940;color:var(--text);padding:11px;font-size:15px}
+textarea{min-height:190px;resize:vertical;line-height:1.4}button{font-weight:750;cursor:pointer}button.primary{background:var(--green);color:#052e16;border:0}button.danger{background:var(--red);border:0}button:disabled{opacity:.5;cursor:not-allowed}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.status{white-space:pre-wrap;background:#091322;border-radius:11px;padding:10px;margin-top:10px;color:#cbd5e1;font-size:13px;min-height:45px}.progress{height:9px;background:#07101e;border-radius:99px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:var(--green)}
+.preview{display:flex;justify-content:center;align-items:center;min-height:430px;background:#030712;border-radius:14px;overflow:hidden}canvas{width:100%;height:auto;max-height:72vh;background:#000}.small{font-size:12px;color:var(--muted);line-height:1.45}.pill{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 9px;color:var(--muted);font-size:12px}
+audio{width:100%;margin-top:8px}.download{display:none;margin-top:10px;text-decoration:none;text-align:center;border-radius:11px;padding:12px;background:#2563eb;color:#fff;font-weight:750}
+@media(max-width:850px){.grid{grid-template-columns:1fr}.preview{min-height:240px}.three{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header><h1>SRT Synkverktyg</h1></header>
-
-<div class="wrap">
-  <section class="panel">
-    <label>1. Välj ljudfil</label>
-    <input id="audioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" />
-    <audio id="audio" controls></audio>
-
-    <label>2. Klistra in lyrics</label>
-    <textarea id="lyricsInput" placeholder="En textrad per undertextsegment..."></textarea>
-
-    <div class="row">
-      <button id="buildBtn" class="primary">Skapa rader</button>
-      <button id="clearBtn">Rensa allt</button>
-    </div>
-
-    <label>Standardlängd för sista raden</label>
-    <input id="lastDuration" type="number" min="0.5" step="0.1" value="2.5" />
-
-    <div class="row">
-      <button id="playBtn">Spela / pausa</button>
-      <button id="markBtn" class="primary">Markera nästa rad</button>
-      <button id="undoBtn">Ångra senaste</button>
-    </div>
-
-    <div class="row">
-      <button id="exportBtn" class="primary">Exportera SRT</button>
-      <button id="copyBtn">Kopiera SRT</button>
-    </div>
-
-    <div class="status" id="status">
-      Kortkommando: <span class="kbd">Mellanslag</span> = spela/pausa,
-      <span class="kbd">Enter</span> = markera nästa rad,
-      <span class="kbd">Backspace</span> = ångra.
-    </div>
-
-    <p class="hint">
-      Varje tryck sätter starttiden för nästa textrad. Föregående rad slutar automatiskt vid nästa tryck.
-      Du kan finjustera tiderna direkt i listan.
-    </p>
-  </section>
-
-  <section class="panel">
-    <div id="lyricsList" class="lyrics"></div>
-  </section>
+<main>
+<div class="top"><div><h1>Lyrics Video Maker</h1><p class="sub">Skapa en animerad textvideo från MP3/WAV och SRT eller egna radtider.</p></div><span id="formatPill" class="pill">Kontrollerar videoformat…</span></div>
+<div class="grid">
+<section>
+  <div class="card">
+    <label>1. Ljudfil</label><input id="audioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"><audio id="audio" controls></audio>
+    <label>2. Undertextfil (valfritt)</label><input id="srtFile" type="file" accept=".srt,text/plain">
+    <label>Lyrics – en rad per segment</label><textarea id="lyrics" placeholder="Klistra in text här om du inte laddar en SRT-fil…"></textarea>
+    <div class="two"><button id="makeRows">Skapa jämna tider</button><button id="useSrt">Läs SRT</button></div>
+  </div>
+  <div class="card">
+    <label>Animationsstil</label><select id="style"><option value="geometry">Geometriska former</option><option value="particles">Partiklar</option><option value="waves">Ljudvågor</option><option value="gradient">Mjuk gradient</option></select>
+    <div class="two"><div><label>Format</label><select id="ratio"><option value="16:9">16:9 liggande</option><option value="9:16">9:16 stående</option><option value="1:1">1:1 kvadrat</option></select></div><div><label>Upplösning</label><select id="quality"><option value="720">720p</option><option value="1080">1080p</option></select></div></div>
+    <div class="two"><div><label>Textstorlek</label><input id="fontSize" type="number" min="28" max="120" value="64"></div><div><label>Bildfrekvens</label><select id="fps"><option>30</option><option>25</option><option>24</option></select></div></div>
+    <label>Rubrik (valfritt)</label><input id="title" placeholder="Exempel: Triangel">
+    <div class="two"><button id="previewBtn">Förhandsvisa</button><button id="stopBtn">Stoppa</button></div>
+    <button id="renderBtn" class="primary" style="margin-top:9px">Skapa video</button>
+    <div class="progress"><div id="bar"></div></div><div id="status" class="status">Ladda en ljudfil och text eller SRT.</div>
+    <a id="download" class="download">Ladda ner video</a>
+    <p class="small">All bearbetning sker lokalt i webbläsaren. På vissa iPhone-versioner exporteras WebM i stället för MP4 eftersom Safari bestämmer vilka videokodekar som får spelas in.</p>
+  </div>
+</section>
+<section class="card"><div class="preview"><canvas id="canvas" width="1280" height="720"></canvas></div></section>
 </div>
-
+</main>
 <script>
-const audioFile = document.getElementById('audioFile');
-const audio = document.getElementById('audio');
-const lyricsInput = document.getElementById('lyricsInput');
-const lyricsList = document.getElementById('lyricsList');
-const buildBtn = document.getElementById('buildBtn');
-const clearBtn = document.getElementById('clearBtn');
-const playBtn = document.getElementById('playBtn');
-const markBtn = document.getElementById('markBtn');
-const undoBtn = document.getElementById('undoBtn');
-const exportBtn = document.getElementById('exportBtn');
-const copyBtn = document.getElementById('copyBtn');
-const lastDuration = document.getElementById('lastDuration');
-const status = document.getElementById('status');
-
-let rows = [];
-let nextIndex = 0;
-let history = [];
-
-audioFile.addEventListener('change', () => {
-  const file = audioFile.files[0];
-  if (!file) return;
-  audio.src = URL.createObjectURL(file);
-  status.textContent = `Ljudfil laddad: ${file.name}`;
-});
-
-buildBtn.addEventListener('click', buildRows);
-clearBtn.addEventListener('click', () => {
-  rows = []; nextIndex = 0; history = [];
-  lyricsList.innerHTML = '';
-  lyricsInput.value = '';
-  audio.removeAttribute('src');
-  audio.load();
-  audioFile.value = '';
-  status.textContent = 'Allt är rensat.';
-});
-
-playBtn.addEventListener('click', togglePlay);
-markBtn.addEventListener('click', markNext);
-undoBtn.addEventListener('click', undoLast);
-exportBtn.addEventListener('click', exportSrt);
-copyBtn.addEventListener('click', copySrt);
-
-function buildRows(){
-  const lines = lyricsInput.value
-    .split(/\r?\n/)
-    .map(x => x.trim())
-    .filter(Boolean);
-
-  rows = lines.map(text => ({text, start:null, end:null}));
-  nextIndex = 0;
-  history = [];
-  renderRows();
-  status.textContent = `${rows.length} textrader skapade. Starta ljudet och markera rad för rad.`;
+const $=id=>document.getElementById(id);const audio=$("audio"),canvas=$("canvas"),ctx=canvas.getContext("2d");let cues=[],raf=0,stopRequested=false,objectUrl=null;
+const mimeCandidates=["video/mp4;codecs=h264,aac","video/mp4","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+const supportedMime=mimeCandidates.find(x=>window.MediaRecorder&&MediaRecorder.isTypeSupported(x))||"";$("formatPill").textContent=supportedMime.includes("mp4")?"MP4 stöds":"WebM används";
+function status(t,p=null){$("status").textContent=t;if(p!==null)$("bar").style.width=Math.max(0,Math.min(100,p))+"%"}
+function srtTime(s){const m=s.trim().match(/(\d+):(\d+):(\d+)[,.](\d+)/);return m?+m[1]*3600 + +m[2]*60 + +m[3] + +(m[4].padEnd(3,"0").slice(0,3))/1000:null}
+function parseSrt(text){const blocks=text.replace(/\r/g,"").trim().split(/\n\s*\n/);return blocks.map(b=>{const l=b.split("\n"),i=l.findIndex(x=>x.includes("-->"));if(i<0)return null;const [a,z]=l[i].split("-->");return{start:srtTime(a),end:srtTime(z),text:l.slice(i+1).join("\n").trim()}}).filter(x=>x&&x.text&&x.start!==null&&x.end!==null)}
+function evenCues(){const lines=$("lyrics").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length||!audio.duration)return alert("Ladda ljudfilen och lägg in text.");const dur=audio.duration/lines.length;cues=lines.map((text,i)=>({start:i*dur,end:(i+1)*dur,text}));status(`${cues.length} segment skapade.`)}
+$("audioFile").onchange=()=>{const f=$("audioFile").files[0];if(!f)return;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(f);audio.src=objectUrl;audio.load();status(`Ljudfil laddad: ${f.name}`)};
+$("useSrt").onclick=async()=>{const f=$("srtFile").files[0];if(!f)return alert("Välj en SRT-fil.");cues=parseSrt(await f.text());$("lyrics").value=cues.map(c=>c.text.replace(/\n/g," ")).join("\n");status(`${cues.length} SRT-segment inlästa.`)};$("makeRows").onclick=evenCues;
+function setSize(){const q=+$("quality").value,r=$("ratio").value;if(r==="16:9"){canvas.width=Math.round(q*16/9);canvas.height=q}else if(r==="9:16"){canvas.width=q;canvas.height=Math.round(q*16/9)}else{canvas.width=q;canvas.height=q}}
+function cueAt(t){return cues.find(c=>t>=c.start&&t<c.end)||null}
+function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
+function draw(t){const w=canvas.width,h=canvas.height,style=$("style").value;ctx.clearRect(0,0,w,h);const g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,"#081229");g.addColorStop(.5,"#172554");g.addColorStop(1,"#312e81");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+ if(style==="geometry"){for(let i=0;i<14;i++){const x=(Math.sin(t*.35+i*1.7)*.45+.5)*w,y=(Math.cos(t*.27+i*2.1)*.45+.5)*h,s=35+(i%5)*18;ctx.save();ctx.translate(x,y);ctx.rotate(t*.18+i);ctx.globalAlpha=.12;ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.strokeRect(-s/2,-s/2,s,s);ctx.restore()}}
+ if(style==="particles"){for(let i=0;i<80;i++){const x=((i*97+t*22*(1+i%3))%w),y=((i*53+t*10*(1+i%5))%h);ctx.globalAlpha=.18+(i%5)/20;ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(x,y,2+i%4,0,Math.PI*2);ctx.fill()}}
+ if(style==="waves"){ctx.globalAlpha=.25;ctx.lineWidth=5;for(let j=0;j<5;j++){ctx.beginPath();ctx.strokeStyle="#fff";for(let x=0;x<=w;x+=12){const y=h*.5+Math.sin(x/90+t*2+j)*40*(j+1)/3;ctx.lineTo(x,y)}ctx.stroke()}}
+ if(style==="gradient"){const rg=ctx.createRadialGradient(w*(.5+.25*Math.sin(t*.3)),h*(.5+.2*Math.cos(t*.4)),10,w/2,h/2,Math.max(w,h)*.8);rg.addColorStop(0,"#22d3ee55");rg.addColorStop(1,"#00000000");ctx.fillStyle=rg;ctx.fillRect(0,0,w,h)}ctx.globalAlpha=1;
+ const title=$("title").value.trim();if(title){ctx.fillStyle="#ffffffaa";ctx.font=`600 ${Math.max(22,w/45)}px system-ui`;ctx.textAlign="center";ctx.fillText(title,w/2,h*.11)}
+ const cue=cueAt(t);if(cue){const progress=Math.max(0,Math.min(1,(t-cue.start)/(cue.end-cue.start)));const fs=+$("fontSize").value*(w/1280);ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`800 ${fs}px system-ui`;const lines=wrap(cue.text,w*.78);const lineH=fs*1.18,bh=lines.length*lineH+fs*.8;ctx.globalAlpha=.5;ctx.fillStyle="#020617";roundedRect(w*.09,h*.5-bh/2,w*.82,bh,28);ctx.globalAlpha=1;lines.forEach((line,i)=>{const y=h*.5+(i-(lines.length-1)/2)*lineH;ctx.fillStyle="#fff";ctx.fillText(line,w/2,y);const tw=ctx.measureText(line).width;ctx.save();ctx.beginPath();ctx.rect(w/2-tw/2,y-lineH/2,tw*progress,lineH);ctx.clip();ctx.fillStyle="#22c55e";ctx.fillText(line,w/2,y);ctx.restore()})}
 }
-
-function togglePlay(){
-  if (!audio.src) return;
-  audio.paused ? audio.play() : audio.pause();
-}
-
-function markNext(){
-  if (!rows.length || nextIndex >= rows.length || !audio.src) return;
-
-  const t = audio.currentTime;
-  history.push(JSON.stringify(rows));
-
-  rows[nextIndex].start = t;
-  if (nextIndex > 0) rows[nextIndex - 1].end = t;
-
-  nextIndex++;
-  if (nextIndex === rows.length){
-    rows[rows.length - 1].end = Math.min(
-      audio.duration || Infinity,
-      t + parseFloat(lastDuration.value || 2.5)
-    );
-    status.textContent = 'Alla rader markerade. Finjustera vid behov och exportera SRT.';
-  } else {
-    status.textContent = `Markerat ${nextIndex}/${rows.length}. Nästa: ${rows[nextIndex].text}`;
-  }
-  renderRows();
-}
-
-function undoLast(){
-  if (!history.length) return;
-  rows = JSON.parse(history.pop());
-  nextIndex = rows.filter(r => r.start !== null).length;
-  status.textContent = `Ångrade senaste markeringen. Nästa rad: ${nextIndex + 1}`;
-  renderRows();
-}
-
-function renderRows(){
-  lyricsList.innerHTML = '';
-  rows.forEach((r,i) => {
-    const el = document.createElement('div');
-    el.className = 'line' + (i === nextIndex ? ' active' : '') + (r.start !== null ? ' done' : '');
-
-    const num = document.createElement('div');
-    num.className = 'num';
-    num.textContent = i + 1;
-
-    const txt = document.createElement('div');
-    txt.className = 'txt';
-    txt.textContent = r.text;
-
-    const start = document.createElement('input');
-    start.className = 'time';
-    start.value = r.start === null ? '' : formatTimeInput(r.start);
-    start.placeholder = '00:00:00.000';
-    start.addEventListener('change', () => {
-      const v = parseTimeInput(start.value);
-      if (v !== null) {
-        r.start = v;
-        if (i > 0 && rows[i-1].end === null) rows[i-1].end = v;
-      }
-      renderRows();
-    });
-
-    const end = document.createElement('input');
-    end.className = 'time';
-    end.value = r.end === null ? '' : formatTimeInput(r.end);
-    end.placeholder = '00:00:00.000';
-    end.addEventListener('change', () => {
-      const v = parseTimeInput(end.value);
-      if (v !== null) r.end = v;
-      renderRows();
-    });
-
-    const jump = document.createElement('button');
-    jump.textContent = 'Hoppa';
-    jump.addEventListener('click', () => {
-      if (r.start !== null) {
-        audio.currentTime = r.start;
-        audio.play();
-      }
-    });
-
-    el.append(num, txt, start, end, jump);
-    lyricsList.appendChild(el);
-  });
-}
-
-function buildSrt(){
-  const valid = rows.filter(r => r.start !== null);
-  return valid.map((r,i) => {
-    let end = r.end;
-    if (end === null) {
-      end = i < valid.length - 1
-        ? valid[i+1].start
-        : r.start + parseFloat(lastDuration.value || 2.5);
-    }
-    return `${i+1}\n${toSrtTime(r.start)} --> ${toSrtTime(end)}\n${r.text}`;
-  }).join('\n\n');
-}
-
-function exportSrt(){
-  const srt = buildSrt();
-  if (!srt) return;
-  const blob = new Blob([srt], {type:'application/x-subrip;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'synkroniserad_text.srt';
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-async function copySrt(){
-  const srt = buildSrt();
-  if (!srt) return;
-  await navigator.clipboard.writeText(srt);
-  status.textContent = 'SRT kopierad till urklipp.';
-}
-
-function toSrtTime(sec){
-  const ms = Math.max(0, Math.round(sec * 1000));
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  const milli = ms % 1000;
-  return `${pad(h)}:${pad(m)}:${pad(s)},${String(milli).padStart(3,'0')}`;
-}
-
-function formatTimeInput(sec){
-  return toSrtTime(sec).replace(',', '.');
-}
-
-function parseTimeInput(value){
-  const m = value.trim().match(/^(\d{1,2}):(\d{2}):(\d{2})[.,](\d{1,3})$/);
-  if (!m) return null;
-  return Number(m[1])*3600 + Number(m[2])*60 + Number(m[3]) + Number(m[4].padEnd(3,'0'))/1000;
-}
-
-function pad(n){ return String(n).padStart(2,'0'); }
-
-document.addEventListener('keydown', e => {
-  const tag = document.activeElement.tagName;
-  const editing = tag === 'INPUT' || tag === 'TEXTAREA';
-
-  if (e.code === 'Space' && !editing){
-    e.preventDefault();
-    togglePlay();
-  }
-  if (e.key === 'Enter' && !editing){
-    e.preventDefault();
-    markNext();
-  }
-  if (e.key === 'Backspace' && !editing){
-    e.preventDefault();
-    undoLast();
-  }
-});
+function wrap(text,max){const words=text.replace(/\n/g," ").split(/\s+/),lines=[];let line="";for(const word of words){const test=line?line+" "+word:word;if(ctx.measureText(test).width>max&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);return lines}
+function preview(){if(!audio.src)return alert("Välj ljudfil.");if(!cues.length)evenCues();setSize();cancelAnimationFrame(raf);audio.play();const loop=()=>{draw(audio.currentTime);if(!audio.paused&&!audio.ended)raf=requestAnimationFrame(loop)};loop()}
+$("previewBtn").onclick=preview;$("stopBtn").onclick=()=>{stopRequested=true;audio.pause();cancelAnimationFrame(raf)};
+$("renderBtn").onclick=async()=>{if(!audio.src)return alert("Välj ljudfil.");if(!cues.length)evenCues();if(!window.MediaRecorder)return alert("Din webbläsare stöder inte videoinspelning.");setSize();stopRequested=false;$("renderBtn").disabled=true;$("download").style.display="none";audio.pause();audio.currentTime=0;await new Promise(r=>audio.onseeked=r);
+ try{const canvasStream=canvas.captureStream(+$('fps').value);const ac=new(window.AudioContext||window.webkitAudioContext)();const source=ac.createMediaElementSource(audio);const dest=ac.createMediaStreamDestination();source.connect(dest);source.connect(ac.destination);const stream=new MediaStream([...canvasStream.getVideoTracks(),...dest.stream.getAudioTracks()]);const rec=new MediaRecorder(stream,supportedMime?{mimeType:supportedMime,videoBitsPerSecond:qualityBits()}:undefined);const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};const stopped=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e.error||e)});rec.start(1000);await audio.play();status("Skapar video…",0);const loop=()=>{draw(audio.currentTime);status(`Skapar video… ${Math.round(audio.currentTime)} / ${Math.round(audio.duration)} sekunder`,audio.currentTime/audio.duration*100);if(!stopRequested&&!audio.ended)raf=requestAnimationFrame(loop);else if(rec.state!=="inactive")rec.stop()};loop();await stopped;audio.pause();const type=supportedMime||"video/webm";const blob=new Blob(chunks,{type});const ext=type.includes("mp4")?"mp4":"webm";const url=URL.createObjectURL(blob);const a=$("download");a.href=url;a.download=`lyrics-video.${ext}`;a.textContent=`Ladda ner ${ext.toUpperCase()}-video`;a.style.display="block";status(`Klart. Videon skapades som ${ext.toUpperCase()}.`,100)}catch(e){console.error(e);status("Videon kunde inte skapas: "+(e.message||e),0)}finally{$("renderBtn").disabled=false}}
+function qualityBits(){return $("quality").value==="1080"?9000000:5000000}
+draw(0);
 </script>
 </body>
 </html>
