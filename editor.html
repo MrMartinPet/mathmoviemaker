@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#05070b">
 <title>Math Movie Maker</title>
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
+<script>
+try{const p=JSON.parse(localStorage.getItem('mmm')||'null');if(p){p.ratio='16:9';localStorage.setItem('mmm',JSON.stringify(p))}}catch(e){}
+</script>
 </head>
 <body>
 <main>
@@ -14,7 +17,8 @@
 <div class="grid">
 <section class="workspace">
 <div class="preview-panel">
-<div class="preview"><canvas id="canvas" width="720" height="1280"></canvas></div>
+<div class="format-badge">VIDEO 16:9</div>
+<div class="preview"><canvas id="canvas" width="1280" height="720"></canvas></div>
 <div class="transport"><button id="stopBtn">■</button><audio id="audio" controls preload="metadata"></audio><button id="previewBtn" class="primary">▶</button></div>
 </div>
 <div class="editor">
@@ -29,10 +33,10 @@
 <aside class="panel-stack">
 <div class="card project-tools"><h2>Projekt</h2><label>Projektnamn</label><input id="projectName" value="Math Movie"></div>
 <div class="card"><h2>Media och text</h2><label for="audioFile">Ljudfil</label><input id="audioFile" type="file" accept=".mp3,.wav,.m4a,.aac,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/aac"><label>Text – en rad per klipp</label><textarea id="lyrics" placeholder="Klistra in texten här"></textarea><div class="two"><button id="makeRows">Skapa klipp</button><button id="resetTimes">Nollställ</button></div><div id="timingList" class="timing-list"></div></div>
-<div class="card"><h2>Video</h2><div class="two"><div><label>Format</label><select id="ratio"><option value="9:16" selected>9:16 stående</option><option value="16:9">16:9 liggande</option><option value="1:1">1:1 kvadrat</option></select></div><div><label>Upplösning</label><select id="quality"><option value="720">720p</option><option value="1080">1080p</option></select></div></div><label>Exportläge</label><select id="exportMode"><option value="smooth">Jämn export</option><option value="quality">Högsta kvalitet</option></select><button id="renderBtn" class="primary" style="margin-top:10px">Skapa video</button><div class="progress"><div id="bar"></div></div><div id="status" class="status">Välj en ljudfil.</div><a id="download" class="download">Ladda ner video</a></div>
+<div class="card"><h2>Video</h2><div class="two"><div><label>Format</label><select id="ratio"><option value="16:9" selected>16:9 liggande</option></select></div><div><label>Upplösning</label><select id="quality"><option value="720">720p</option><option value="1080">1080p</option></select></div></div><p class="small">Redigeraren används stående, men förhandsvisning och exporterad video är alltid 16:9.</p><label>Exportläge</label><select id="exportMode"><option value="smooth">Jämn export</option><option value="quality">Högsta kvalitet</option></select><button id="renderBtn" class="primary" style="margin-top:10px">Skapa video</button><div class="progress"><div id="bar"></div></div><div id="status" class="status">Välj en ljudfil.</div><a id="download" class="download">Ladda ner video</a></div>
 </aside>
 </div>
 </main>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
