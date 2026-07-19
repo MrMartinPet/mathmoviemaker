@@ -1,19 +1,15 @@
-# TriangelSynk Mobil
+# MP3/WAV Transcriber
 
-Mobil webapp för automatisk eller manuell synkning av sångtext.
+Mobil webbapp för iPhone.
 
-## Starta
-För full funktion behöver mappen publiceras på en HTTPS-webbadress, exempelvis GitHub Pages eller Netlify.
+## Publicera med GitHub Pages
+1. Ladda upp alla filer till roten av ett publikt repository.
+2. Öppna Settings → Pages.
+3. Under Build and deployment välj Deploy from a branch.
+4. Välj main och /root.
+5. Spara.
 
-1. Ladda upp hela mappen.
-2. Öppna sidan i Safari eller Chrome.
-3. Välj ljudfil.
-4. Klistra in text, en rad per undertextrad.
-5. Kör AI-synkning eller manuell synkning.
-6. Kontrollera tiderna och exportera.
+Öppna sedan GitHub Pages-länken i Safari.
 
 ## Viktigt
-- AI-modellen laddas ned första gången.
-- Inget konto eller API krävs.
-- Tiny eller Base rekommenderas på mobil.
-- Videoexport sker lokalt och sparas som WebM eftersom MP4 inte stöds stabilt i alla mobilwebbläsare.
+Whisper körs lokalt i webbläsaren. Tiny-modellen rekommenderas på iPhone.

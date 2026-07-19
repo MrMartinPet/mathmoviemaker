@@ -1,8 +1,9 @@
 {
-  "name": "TriangelSynk Mobil",
-  "short_name": "TriangelSynk",
-  "start_url": "./index.html",
+  "name": "MP3 WAV Transcriber",
+  "short_name": "Transcriber",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0b1020",
-  "theme_color": "#111827"
+  "theme_color": "#111827",
+  "icons": []
 }
