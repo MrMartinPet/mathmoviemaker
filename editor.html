@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#05070b">
 <title>Math Movie Maker</title>
-<link rel="stylesheet" href="styles.css?v=4">
+<link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
 <main>
@@ -18,17 +18,17 @@
 <div class="transport"><button id="stopBtn">■</button><audio id="audio" controls preload="metadata"></audio><button id="previewBtn" class="primary">▶</button></div>
 </div>
 <div class="timeline-card">
-<div class="timeline-toolbar"><button id="fitTimeline">Passa in</button><label class="zoom-label">Zoom<input id="timelineZoom" type="range" min="35" max="180" value="70"></label><span id="zoomValue">70</span><span class="spacer"></span><button id="markTime" class="primary">Placera nästa</button></div>
+<div class="timeline-toolbar"><button id="fitTimeline">Passa in</button><label class="zoom-label">Zoom<input id="timelineZoom" type="range" min="35" max="180" value="70"></label><span id="zoomValue">70</span><span class="spacer"></span><button id="markTime" class="primary">Visa valt</button></div>
 <div id="timelineShell" class="timeline-shell"><div id="timeline" class="timeline"><div id="ruler" class="ruler"></div><div id="track" class="track"></div><div id="playhead" class="playhead"></div></div></div>
-<div class="nudge"><button data-nudge="-0.1">← 0,1 s</button><button data-nudge="0.1">0,1 s →</button><button data-edge="start">Start här</button><button data-edge="end">Slut här</button></div>
+<div class="nudge"><button data-nudge="-0.1">− 0,1 s längd</button><button data-nudge="0.1">+ 0,1 s längd</button><button data-edge="start">Start här</button><button data-edge="end">Slut här</button></div>
 </div>
 </section>
 <section class="panel-stack">
-<div class="card"><h2>Media och texter</h2><label for="audioFile">Ljudfil</label><input id="audioFile" type="file" accept=".mp3,.wav,.m4a,.aac,audio/*"><label>Text – en rad per klipp</label><textarea id="lyrics" placeholder="Klistra in texten här"></textarea><div class="two"><button id="makeRows">Skapa textklipp</button><button id="resetTimes">Nollställ tider</button></div><p class="small">Varje rad får en föreslagen animation. Du kan byta animation och redigera start, slut eller längd direkt i listan.</p><div id="timingList" class="timing-list"></div></div>
+<div class="card"><h2>Media och texter</h2><label for="audioFile">Ljudfil</label><input id="audioFile" type="file" accept=".mp3,.wav,.m4a,.aac,audio/*"><label>Text – en rad per klipp</label><textarea id="lyrics" placeholder="Klistra in texten här"></textarea><div class="two"><button id="makeRows">Skapa textklipp</button><button id="resetTimes">Alla till 1 sekund</button></div><p class="small">Alla klipp ligger i en enda kedja utan överlapp. Varje nytt klipp är 1 sekund. När ett klipp ändrar längd flyttas alla efterföljande automatiskt.</p><div id="timingList" class="timing-list"></div></div>
 <div class="card"><h2>Projekt</h2><label>Projektnamn</label><input id="projectName" value="Math Movie"></div>
 <div class="card"><h2>Video</h2><div class="two"><div><label>Format</label><select id="ratio"><option value="16:9" selected>16:9 liggande</option></select></div><div><label>Upplösning</label><select id="quality"><option value="720">720p</option><option value="1080">1080p</option></select></div></div><label>Exportläge</label><select id="exportMode"><option value="smooth">Jämn export</option><option value="quality">Högsta kvalitet</option></select><button id="renderBtn" class="primary export-btn">Skapa video</button><div class="progress"><div id="bar"></div></div><div id="status" class="status">Välj en ljudfil.</div><a id="download" class="download">Ladda ner video</a></div>
 </section>
 </main>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
