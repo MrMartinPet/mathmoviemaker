@@ -1,170 +1,58 @@
 <!doctype html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
-  <link rel="manifest" href="manifest.webmanifest">
-  <title>MP3/WAV Transcriber</title>
-  <style>
-    :root{--bg:#0b1020;--card:#141b2d;--line:#334155;--text:#f8fafc;--muted:#a5b4c7;--green:#22c55e}
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(#09101f,#111827);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-    main{max-width:760px;margin:auto;padding:16px}
-    h1{font-size:24px;margin:8px 0 4px}
-    .sub{color:var(--muted);margin:0 0 16px;font-size:14px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
-    label{display:block;color:var(--muted);font-size:13px;margin:8px 0 6px}
-    input,select,button,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:#1d263b;color:var(--text);padding:13px;font-size:16px}
-    button{font-weight:700}
-    button.primary{background:var(--green);color:#052e16;border:0}
-    button:disabled{opacity:.55}
-    textarea{min-height:260px;resize:vertical;line-height:1.45}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .status{white-space:pre-wrap;background:#0f172a;border-radius:12px;padding:12px;margin-top:10px;color:#cbd5e1;font-size:13px}
-    .progress{height:8px;background:#0f172a;border-radius:99px;overflow:hidden;margin-top:10px}
-    .progress>div{height:100%;width:0;background:var(--green);transition:width .2s}
-    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .small{font-size:12px;color:var(--muted);line-height:1.45}
-    @media(max-width:600px){.row,.actions{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<title>MP3/WAV Transcriber Mobil</title>
+<style>
+:root{--bg:#0b1020;--card:#141b2d;--line:#334155;--text:#f8fafc;--muted:#a5b4c7;--green:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#09101f,#111827);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:760px;margin:auto;padding:16px}h1{font-size:24px;margin:8px 0 4px}.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+label{display:block;color:var(--muted);font-size:13px;margin:8px 0 6px}
+input,select,button,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:#1d263b;color:var(--text);padding:13px;font-size:16px}
+button{font-weight:700}button.primary{background:var(--green);color:#052e16;border:0}button:disabled{opacity:.55}
+textarea{min-height:260px;resize:vertical;line-height:1.45}.status{white-space:pre-wrap;background:#0f172a;border-radius:12px;padding:12px;margin-top:10px;color:#cbd5e1;font-size:13px}
+.progress{height:9px;background:#0f172a;border-radius:99px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:var(--green);transition:width .2s}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.small{font-size:12px;color:var(--muted);line-height:1.45}
+</style>
 </head>
 <body>
 <main>
-  <h1>MP3/WAV Transcriber</h1>
-  <p class="sub">Transkriberar lokalt i Safari. Ingen fil skickas till en server.</p>
-
-  <section class="card">
-    <label>Välj ljudfil</label>
-    <input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav">
-    <label>Språk</label>
-    <select id="language">
-      <option value="sv">Svenska</option>
-      <option value="en">Engelska</option>
-      <option value="de">Tyska</option>
-      <option value="fr">Franska</option>
-      <option value="es">Spanska</option>
-    </select>
-    <label>Modell</label>
-    <select id="model">
-      <option value="Xenova/whisper-tiny">Tiny – snabbast på iPhone</option>
-      <option value="Xenova/whisper-base">Base – bättre men tyngre</option>
-    </select>
-    <button id="run" class="primary" style="margin-top:12px">Transkribera</button>
-    <div class="progress"><div id="bar"></div></div>
-    <div id="status" class="status">Välj en MP3- eller WAV-fil.</div>
-    <p class="small">Första körningen laddar ned AI-modellen. På äldre iPhone kan Base-modellen krascha. Börja med Tiny.</p>
-  </section>
-
-  <section class="card">
-    <label>Resultat</label>
-    <textarea id="text" placeholder="Transkriberingen visas här..."></textarea>
-    <div class="actions">
-      <button id="txt">Ladda ner TXT</button>
-      <button id="srt">Ladda ner SRT</button>
-    </div>
-  </section>
+<h1>MP3/WAV Transcriber Mobil</h1>
+<p class="sub">Version 2 – optimerad för iPhone med segmenterad analys.</p>
+<section class="card">
+<label>Välj ljudfil</label>
+<input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav">
+<label>Språk</label>
+<select id="language">
+<option value="sv">Svenska</option><option value="en">Engelska</option><option value="de">Tyska</option><option value="fr">Franska</option><option value="es">Spanska</option>
+</select>
+<button id="run" class="primary" style="margin-top:12px">Transkribera i delar</button>
+<div class="progress"><div id="bar"></div></div>
+<div id="status" class="status">Välj en MP3- eller WAV-fil.</div>
+<p class="small">Första gången laddas en komprimerad AI-modell. Därefter analyseras ljudet 10 sekunder åt gången. Håll Safari öppen under körningen.</p>
+</section>
+<section class="card">
+<label>Resultat</label>
+<textarea id="text" placeholder="Transkriberingen visas här..."></textarea>
+<div class="actions"><button id="txt">Ladda ner TXT</button><button id="srt">Ladda ner SRT</button></div>
+</section>
 </main>
-
 <script type="module">
-const $ = id => document.getElementById(id);
-let chunks = [];
-
-function setStatus(text, progress=null){
-  $("status").textContent = text;
-  if(progress !== null) $("bar").style.width = Math.max(0,Math.min(100,progress)) + "%";
-}
-
-function download(content, filename, type="text/plain"){
-  const blob = new Blob([content], {type});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-
-function stamp(sec){
-  const ms = Math.max(0, Math.round(sec*1000));
-  const h = Math.floor(ms/3600000);
-  const m = Math.floor(ms%3600000/60000);
-  const s = Math.floor(ms%60000/1000);
-  const x = ms%1000;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")},${String(x).padStart(3,"0")}`;
-}
-
-$("run").onclick = async () => {
-  const file = $("file").files[0];
-  if(!file) return alert("Välj en MP3- eller WAV-fil.");
-  if(!/\.(mp3|wav)$/i.test(file.name)) return alert("Endast MP3 och WAV stöds.");
-
-  $("run").disabled = true;
-  chunks = [];
-  $("text").value = "";
-
-  try{
-    setStatus("Laddar AI-motorn…", 5);
-    const { pipeline, env } = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2");
-    env.allowLocalModels = false;
-
-    const transcriber = await pipeline(
-      "automatic-speech-recognition",
-      $("model").value,
-      {
-        progress_callback: p => {
-          if(p.status === "progress" && p.progress){
-            setStatus("Laddar modell: " + Math.round(p.progress) + " %", Math.min(45, p.progress*0.45));
-          }
-        }
-      }
-    );
-
-    setStatus("Analyserar ljudet…", 55);
-
-    const result = await transcriber(
-      URL.createObjectURL(file),
-      {
-        language: $("language").value,
-        task: "transcribe",
-        return_timestamps: true,
-        chunk_length_s: 20,
-        stride_length_s: 4
-      }
-    );
-
-    chunks = (result.chunks || []).map((c,i) => ({
-      text: (c.text || "").trim(),
-      start: Number(c.timestamp?.[0] || 0),
-      end: Number(c.timestamp?.[1] || c.timestamp?.[0] || 0)
-    })).filter(c => c.text);
-
-    $("text").value = result.text || chunks.map(c=>c.text).join(" ");
-    setStatus("Klart.", 100);
-  }catch(err){
-    console.error(err);
-    setStatus("Misslyckades:\n" + err.message + "\n\nTesta Tiny-modellen eller en kortare fil.", 0);
-  }finally{
-    $("run").disabled = false;
-  }
-};
-
-$("txt").onclick = () => {
-  if(!$("text").value.trim()) return alert("Ingen text att ladda ner.");
-  download($("text").value, "transkribering.txt");
-};
-
-$("srt").onclick = () => {
-  if(!chunks.length) return alert("Ingen tidskodad transkribering finns.");
-  const srt = chunks.map((c,i)=>
-    `${i+1}\n${stamp(c.start)} --> ${stamp(Math.max(c.end,c.start+0.5))}\n${c.text}\n`
-  ).join("\n");
-  download(srt, "transkribering.srt");
-};
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("./sw.js").catch(()=>{});
-}
+const $=id=>document.getElementById(id);
+let chunks=[], audioContext=null;
+const SEGMENT_SECONDS=10, TARGET_RATE=16000;
+function setStatus(text,progress=null){$("status").textContent=text;if(progress!==null)$("bar").style.width=Math.max(0,Math.min(100,progress))+"%"}
+function download(content,filename,type="text/plain"){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function stamp(sec){const ms=Math.max(0,Math.round(sec*1000)),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000),x=ms%1000;return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")},${String(x).padStart(3,"0")}`}
+function monoSample(buffer,startSec,endSec){const rate=buffer.sampleRate;const start=Math.floor(startSec*rate),end=Math.min(buffer.length,Math.ceil(endSec*rate));const sourceLength=Math.max(1,end-start);const outLength=Math.max(1,Math.round((endSec-startSec)*TARGET_RATE));const out=new Float32Array(outLength);const channels=buffer.numberOfChannels;for(let i=0;i<outLength;i++){const pos=i*(sourceLength-1)/Math.max(1,outLength-1);const p0=Math.floor(pos),p1=Math.min(sourceLength-1,p0+1),f=pos-p0;let v=0;for(let c=0;c<channels;c++){const data=buffer.getChannelData(c);const a=data[start+p0]||0,b=data[start+p1]||0;v+=a+(b-a)*f}out[i]=v/channels}return out}
+$("run").onclick=async()=>{const file=$("file").files[0];if(!file)return alert("Välj en MP3- eller WAV-fil.");if(!/\.(mp3|wav)$/i.test(file.name))return alert("Endast MP3 och WAV stöds.");$("run").disabled=true;chunks=[];$("text").value="";try{setStatus("Läser ljudfilen…",2);audioContext||=new(window.AudioContext||window.webkitAudioContext)({sampleRate:TARGET_RATE});const raw=await file.arrayBuffer();const decoded=await audioContext.decodeAudioData(raw.slice(0));const duration=decoded.duration;const total=Math.ceil(duration/SEGMENT_SECONDS);setStatus("Laddar komprimerad AI-modell…",5);const{pipeline,env}=await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2");env.allowLocalModels=false;env.useBrowserCache=true;const transcriber=await pipeline("automatic-speech-recognition","Xenova/whisper-tiny",{device:"wasm",dtype:"q8",progress_callback:p=>{if(p.status==="progress"&&Number.isFinite(p.progress))setStatus("Laddar AI-modell: "+Math.round(p.progress)+" %",5+Math.min(25,p.progress*.25))}});for(let i=0;i<total;i++){const start=i*SEGMENT_SECONDS,end=Math.min(duration,start+SEGMENT_SECONDS);setStatus(`Analyserar del ${i+1} av ${total}…`,30+65*(i/total));const samples=monoSample(decoded,start,end);const result=await transcriber(samples,{language:$("language").value,task:"transcribe",return_timestamps:true,chunk_length_s:SEGMENT_SECONDS});const local=(result.chunks||[]).map(c=>({text:(c.text||"").trim(),start:start+Number(c.timestamp?.[0]||0),end:start+Number(c.timestamp?.[1]??(end-start))})).filter(c=>c.text);if(local.length)chunks.push(...local);else if((result.text||"").trim())chunks.push({text:result.text.trim(),start,end});$("text").value=chunks.map(c=>c.text).join(" ").replace(/\s+/g," ").trim();await new Promise(r=>setTimeout(r,80))}setStatus(`Klart. ${total} delar analyserades.`,100)}catch(err){console.error(err);setStatus("Misslyckades:\n"+(err?.message||err)+"\n\nStäng andra Safari-flikar och prova igen med en kortare fil.",0)}finally{$("run").disabled=false}};
+$("txt").onclick=()=>{const value=$("text").value.trim();if(!value)return alert("Ingen text att ladda ner.");download(value,"transkribering.txt")};
+$("srt").onclick=()=>{if(!chunks.length)return alert("Ingen tidskodad transkribering finns.");const srt=chunks.map((c,i)=>`${i+1}\n${stamp(c.start)} --> ${stamp(Math.max(c.end,c.start+.5))}\n${c.text}\n`).join("\n");download(srt,"transkribering.srt")};
+if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=2").catch(()=>{});
 </script>
 </body>
 </html>
