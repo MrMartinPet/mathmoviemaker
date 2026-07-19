@@ -17,7 +17,16 @@ _model = None
 def get_model():
     global _model
     if _model is None:
-        _model = WhisperModel(MODEL_SIZE, device="cpu", compute_type="int8")
+        print(f"Loading Whisper model: {MODEL_SIZE}", flush=True)
+        _model = WhisperModel(
+            MODEL_SIZE,
+            device="cpu",
+            compute_type="int8",
+            cpu_threads=1,
+            num_workers=1,
+            download_root="/tmp/whisper-models",
+        )
+        print("Whisper model loaded", flush=True)
     return _model
 
 
@@ -43,7 +52,7 @@ def align_lines(lines, words):
     result = []
     cursor = 0
 
-    for i, line in enumerate(lines):
+    for line in lines:
         target = norm(line).split()
         if not target:
             continue
@@ -53,11 +62,11 @@ def align_lines(lines, words):
         search_end = min(len(words), cursor + max(45, expected * 8))
 
         for start in range(cursor, search_end):
-            for length in range(max(1, expected - 3), min(expected + 6, len(words) - start) + 1):
+            max_length = min(expected + 6, len(words) - start)
+            for length in range(max(1, expected - 3), max_length + 1):
                 candidate = " ".join(tokens[start:start + length])
                 score = SequenceMatcher(None, " ".join(target), candidate).ratio()
-                distance_penalty = (start - cursor) * 0.002
-                score -= distance_penalty
+                score -= (start - cursor) * 0.002
                 if best is None or score > best[0]:
                     best = (score, start, start + length - 1)
 
@@ -75,7 +84,6 @@ def align_lines(lines, words):
         result.append((line, start, end))
         cursor = min(len(words), end_idx + 1)
 
-    # Avoid overlaps and give the final line a little breathing room.
     cleaned = []
     for i, (line, start, end) in enumerate(result):
         if cleaned:
@@ -96,17 +104,70 @@ HTML = r'''<!doctype html>
 :root{color-scheme:dark;--bg:#09111f;--card:#131e31;--line:#334155;--text:#f8fafc;--muted:#a7b4c7;--accent:#22c55e}
 *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#07101e,#111827);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);min-height:100vh}
 main{max-width:720px;margin:auto;padding:18px}h1{font-size:28px;margin:12px 0 4px}.sub{color:var(--muted);margin:0 0 18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
-label{display:block;color:var(--muted);font-size:13px;margin:10px 0 6px}input,textarea,button,select{width:100%;font:inherit;color:var(--text);background:#1c2940;border:1px solid var(--line);border-radius:12px;padding:13px}textarea{min-height:250px;line-height:1.45;resize:vertical}button{background:var(--accent);color:#052e16;border:0;font-weight:800;margin-top:14px}button:disabled{opacity:.55}.status{white-space:pre-wrap;color:#d5deea;background:#0d1728;padding:12px;border-radius:12px;margin-top:12px;min-height:46px}.small{font-size:12px;color:var(--muted);line-height:1.45}.download{display:none;text-decoration:none;text-align:center;background:#2563eb;color:white;padding:13px;border-radius:12px;font-weight:700;margin-top:10px}
+label{display:block;color:var(--muted);font-size:13px;margin:10px 0 6px}input,textarea,button,select{width:100%;font:inherit;color:var(--text);background:#1c2940;border:1px solid var(--line);border-radius:12px;padding:13px}textarea{min-height:250px;line-height:1.45;resize:vertical}button{background:var(--accent);color:#052e16;border:0;font-weight:800;margin-top:14px}button:disabled{opacity:.55}.status{white-space:pre-wrap;color:#d5deea;background:#0d1728;padding:12px;border-radius:12px;margin-top:12px;min-height:46px}.small{font-size:12px;color:var(--muted);line-height:1.45}.download{display:none;text-decoration:none;text-align:center;background:#2563eb;color:white;padding:13px;border-radius:12px;font-weight:700;margin-top:10px}.progress{height:8px;background:#111827;border-radius:99px;overflow:hidden;margin-top:10px;display:none}.progress div{height:100%;width:0;background:var(--accent);transition:width .2s}
 </style></head><body><main><h1>Lyrics Sync</h1><p class="sub">MP3/WAV + färdig text → synkroniserad SRT</p>
 <div class="card"><form id="form"><label>Ljudfil</label><input id="audio" name="audio" type="file" accept="audio/mpeg,audio/wav,.mp3,.wav" required>
 <label>Språk</label><select id="language" name="language"><option value="sv">Svenska</option><option value="en">Engelska</option><option value="de">Tyska</option><option value="fr">Franska</option><option value="es">Spanska</option></select>
 <label>Sångtext – en textrad per undertextrad</label><textarea id="lyrics" name="lyrics" placeholder="Triangel.&#10;Triangel.&#10;En triangel har tre sidor." required></textarea>
-<button id="run" type="submit">Synkronisera texten</button></form><div id="status" class="status">Klar att starta.</div><a id="download" class="download">Ladda ner SRT</a></div>
-<div class="card small">Första körningen kan ta några minuter eftersom servern hämtar Whisper-modellen. Telefonen kör inte AI-modellen och ska därför inte krascha.</div>
+<button id="run" type="submit">Synkronisera texten</button></form><div class="progress" id="progress"><div id="bar"></div></div><div id="status" class="status">Klar att starta.</div><a id="download" class="download">Ladda ner SRT</a></div>
+<div class="card small">Första körningen kan ta några minuter eftersom servern hämtar Whisper-modellen. Låt sidan vara öppen under analysen.</div>
 <script>
-const form=document.getElementById('form'), status=document.getElementById('status'), btn=document.getElementById('run'), link=document.getElementById('download');
-form.addEventListener('submit',async e=>{e.preventDefault();link.style.display='none';btn.disabled=true;status.textContent='Laddar upp och analyserar ljudet…\nFörsta körningen kan ta längre tid.';
-try{const fd=new FormData(form);const r=await fetch('/sync',{method:'POST',body:fd});const text=await r.text();if(!r.ok)throw new Error(text);const blob=new Blob([text],{type:'application/x-subrip'});link.href=URL.createObjectURL(blob);link.download=(document.getElementById('audio').files[0]?.name||'lyrics').replace(/\.[^.]+$/,'')+'.srt';link.style.display='block';status.textContent='Klart! SRT-filen är skapad.';}catch(err){status.textContent='Fel: '+err.message;}finally{btn.disabled=false;}});
+(function(){
+  var form=document.getElementById('form');
+  var status=document.getElementById('status');
+  var btn=document.getElementById('run');
+  var link=document.getElementById('download');
+  var audio=document.getElementById('audio');
+  var progress=document.getElementById('progress');
+  var bar=document.getElementById('bar');
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    link.style.display='none';
+    progress.style.display='block';
+    bar.style.width='3%';
+
+    if(!audio.files || !audio.files.length){status.textContent='Fel: Välj en ljudfil.';return;}
+    var file=audio.files[0];
+    if(file.size>45*1024*1024){status.textContent='Fel: Filen är för stor. Prova en fil under 45 MB.';return;}
+
+    btn.disabled=true;
+    status.textContent='Laddar upp ljudfilen…';
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST','/sync',true);
+    xhr.timeout=15*60*1000;
+
+    xhr.upload.onprogress=function(ev){
+      if(ev.lengthComputable){
+        var pct=Math.max(3,Math.min(45,Math.round((ev.loaded/ev.total)*45)));
+        bar.style.width=pct+'%';
+        status.textContent='Laddar upp ljudfilen… '+Math.round((ev.loaded/ev.total)*100)+'%';
+      }
+    };
+    xhr.upload.onload=function(){bar.style.width='55%';status.textContent='Ljudfilen är uppladdad. Whisper analyserar nu…\nFörsta körningen kan ta flera minuter.';};
+    xhr.onload=function(){
+      btn.disabled=false;
+      if(xhr.status>=200 && xhr.status<300){
+        bar.style.width='100%';
+        var blob=new Blob([xhr.responseText],{type:'application/x-subrip;charset=utf-8'});
+        link.href=URL.createObjectURL(blob);
+        var name=file.name||'lyrics';
+        link.download=name.replace(/\.[^.]+$/,'')+'.srt';
+        link.style.display='block';
+        status.textContent='Klart! SRT-filen är skapad.';
+      }else{
+        bar.style.width='0%';
+        status.textContent='Fel '+xhr.status+': '+(xhr.responseText||xhr.statusText||'Servern gav inget felmeddelande.');
+      }
+    };
+    xhr.onerror=function(){btn.disabled=false;bar.style.width='0%';status.textContent='Nätverksfel: anslutningen till servern bröts. Servern kan ha startat om eller fått slut på minne.';};
+    xhr.ontimeout=function(){btn.disabled=false;bar.style.width='0%';status.textContent='Tidsgränsen passerades. Analysen tog längre än 15 minuter.';};
+    xhr.onabort=function(){btn.disabled=false;bar.style.width='0%';status.textContent='Uppladdningen avbröts.';};
+
+    try{xhr.send(new FormData(form));}
+    catch(err){btn.disabled=false;bar.style.width='0%';status.textContent='Webbläsarfel: '+(err && err.message ? err.message : String(err));}
+  });
+})();
 </script></main></body></html>'''
 
 
@@ -122,6 +183,7 @@ def health():
 
 @app.post("/sync", response_class=PlainTextResponse)
 async def sync(audio: UploadFile = File(...), lyrics: str = Form(...), language: str = Form("sv")):
+    print(f"POST /sync started: {audio.filename}, language={language}", flush=True)
     lines = [line.strip() for line in lyrics.splitlines() if line.strip()]
     if not lines:
         return PlainTextResponse("Ingen sångtext angavs.", status_code=400)
@@ -132,18 +194,25 @@ async def sync(audio: UploadFile = File(...), lyrics: str = Form(...), language:
 
     tmp_path = None
     try:
+        total_bytes = 0
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp_path = tmp.name
             while chunk := await audio.read(1024 * 1024):
+                total_bytes += len(chunk)
+                if total_bytes > 50 * 1024 * 1024:
+                    return PlainTextResponse("Ljudfilen är för stor. Max 50 MB.", status_code=413)
                 tmp.write(chunk)
+        print(f"Upload saved: {total_bytes} bytes", flush=True)
 
         segments, _ = get_model().transcribe(
             tmp_path,
             language=language,
-            beam_size=3,
+            beam_size=1,
+            best_of=1,
             word_timestamps=True,
-            vad_filter=True,
-            initial_prompt=" ".join(lines)[:1200],
+            vad_filter=False,
+            condition_on_previous_text=False,
+            initial_prompt=" ".join(lines)[:1000],
         )
 
         words = []
@@ -152,14 +221,17 @@ async def sync(audio: UploadFile = File(...), lyrics: str = Form(...), language:
                 token = word.word.strip()
                 if token:
                     words.append((token, float(word.start), float(word.end)))
+        print(f"Transcription complete: {len(words)} words", flush=True)
 
         aligned = align_lines(lines, words)
         blocks = []
         for idx, (line, start, end) in enumerate(aligned, 1):
             blocks.append(f"{idx}\n{srt_time(start)} --> {srt_time(end)}\n{line}\n")
+        print(f"SRT complete: {len(blocks)} lines", flush=True)
         return "\n".join(blocks)
     except Exception as exc:
-        return PlainTextResponse(f"Analysen misslyckades: {exc}", status_code=500)
+        print(f"SYNC ERROR: {type(exc).__name__}: {exc}", flush=True)
+        return PlainTextResponse(f"Analysen misslyckades: {type(exc).__name__}: {exc}", status_code=500)
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
