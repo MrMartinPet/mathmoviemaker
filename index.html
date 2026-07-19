@@ -1,58 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827">
-<link rel="manifest" href="manifest.webmanifest">
-<title>MP3/WAV Transcriber Mobil</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SRT Synkverktyg</title>
 <style>
-:root{--bg:#0b1020;--card:#141b2d;--line:#334155;--text:#f8fafc;--muted:#a5b4c7;--green:#22c55e}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(#09101f,#111827);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-main{max-width:760px;margin:auto;padding:16px}h1{font-size:24px;margin:8px 0 4px}.sub{color:var(--muted);margin:0 0 16px;font-size:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
-label{display:block;color:var(--muted);font-size:13px;margin:8px 0 6px}
-input,select,button,textarea{width:100%;border-radius:12px;border:1px solid var(--line);background:#1d263b;color:var(--text);padding:13px;font-size:16px}
-button{font-weight:700}button.primary{background:var(--green);color:#052e16;border:0}button:disabled{opacity:.55}
-textarea{min-height:260px;resize:vertical;line-height:1.45}.status{white-space:pre-wrap;background:#0f172a;border-radius:12px;padding:12px;margin-top:10px;color:#cbd5e1;font-size:13px}
-.progress{height:9px;background:#0f172a;border-radius:99px;overflow:hidden;margin-top:10px}.progress>div{height:100%;width:0;background:var(--green);transition:width .2s}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.small{font-size:12px;color:var(--muted);line-height:1.45}
+  :root{
+    --bg:#0f172a; --panel:#111827; --panel2:#1f2937; --text:#f8fafc;
+    --muted:#94a3b8; --accent:#22c55e; --danger:#ef4444; --line:#334155;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);background:#0b1220;position:sticky;top:0;z-index:5}
+  h1{margin:0;font-size:22px}
+  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px;min-height:calc(100vh - 67px)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  label{display:block;font-weight:700;margin:12px 0 6px}
+  input[type=file], textarea, input[type=text], input[type=number]{
+    width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:9px;padding:10px
+  }
+  textarea{min-height:280px;resize:vertical;line-height:1.45}
+  button{
+    border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;
+    background:#334155;color:#fff
+  }
+  button.primary{background:var(--accent);color:#06230f}
+  button.danger{background:var(--danger)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  audio{width:100%;margin-top:12px}
+  .hint{color:var(--muted);font-size:13px;line-height:1.4}
+  .status{padding:10px;border:1px dashed var(--line);border-radius:9px;margin-top:12px;color:var(--muted)}
+  .lyrics{display:flex;flex-direction:column;gap:8px}
+  .line{
+    display:grid;grid-template-columns:56px 1fr 120px 120px 92px;gap:8px;align-items:center;
+    padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)
+  }
+  .line.active{outline:2px solid var(--accent);background:#17351f}
+  .line.done{opacity:.82}
+  .num{color:var(--muted);font-variant-numeric:tabular-nums}
+  .txt{font-size:18px}
+  .time{font-family:monospace;font-size:14px}
+  .line button{padding:8px 10px}
+  .kbd{font-family:monospace;background:#020617;border:1px solid var(--line);border-radius:5px;padding:2px 5px}
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr}
+    .line{grid-template-columns:44px 1fr}
+    .time,.line button{grid-column:auto}
+  }
 </style>
 </head>
 <body>
-<main>
-<h1>MP3/WAV Transcriber Mobil</h1>
-<p class="sub">Version 2 – optimerad för iPhone med segmenterad analys.</p>
-<section class="card">
-<label>Välj ljudfil</label>
-<input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav">
-<label>Språk</label>
-<select id="language">
-<option value="sv">Svenska</option><option value="en">Engelska</option><option value="de">Tyska</option><option value="fr">Franska</option><option value="es">Spanska</option>
-</select>
-<button id="run" class="primary" style="margin-top:12px">Transkribera i delar</button>
-<div class="progress"><div id="bar"></div></div>
-<div id="status" class="status">Välj en MP3- eller WAV-fil.</div>
-<p class="small">Första gången laddas en komprimerad AI-modell. Därefter analyseras ljudet 10 sekunder åt gången. Håll Safari öppen under körningen.</p>
-</section>
-<section class="card">
-<label>Resultat</label>
-<textarea id="text" placeholder="Transkriberingen visas här..."></textarea>
-<div class="actions"><button id="txt">Ladda ner TXT</button><button id="srt">Ladda ner SRT</button></div>
-</section>
-</main>
-<script type="module">
-const $=id=>document.getElementById(id);
-let chunks=[], audioContext=null;
-const SEGMENT_SECONDS=10, TARGET_RATE=16000;
-function setStatus(text,progress=null){$("status").textContent=text;if(progress!==null)$("bar").style.width=Math.max(0,Math.min(100,progress))+"%"}
-function download(content,filename,type="text/plain"){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement("a");a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
-function stamp(sec){const ms=Math.max(0,Math.round(sec*1000)),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000),x=ms%1000;return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")},${String(x).padStart(3,"0")}`}
-function monoSample(buffer,startSec,endSec){const rate=buffer.sampleRate;const start=Math.floor(startSec*rate),end=Math.min(buffer.length,Math.ceil(endSec*rate));const sourceLength=Math.max(1,end-start);const outLength=Math.max(1,Math.round((endSec-startSec)*TARGET_RATE));const out=new Float32Array(outLength);const channels=buffer.numberOfChannels;for(let i=0;i<outLength;i++){const pos=i*(sourceLength-1)/Math.max(1,outLength-1);const p0=Math.floor(pos),p1=Math.min(sourceLength-1,p0+1),f=pos-p0;let v=0;for(let c=0;c<channels;c++){const data=buffer.getChannelData(c);const a=data[start+p0]||0,b=data[start+p1]||0;v+=a+(b-a)*f}out[i]=v/channels}return out}
-$("run").onclick=async()=>{const file=$("file").files[0];if(!file)return alert("Välj en MP3- eller WAV-fil.");if(!/\.(mp3|wav)$/i.test(file.name))return alert("Endast MP3 och WAV stöds.");$("run").disabled=true;chunks=[];$("text").value="";try{setStatus("Läser ljudfilen…",2);audioContext||=new(window.AudioContext||window.webkitAudioContext)({sampleRate:TARGET_RATE});const raw=await file.arrayBuffer();const decoded=await audioContext.decodeAudioData(raw.slice(0));const duration=decoded.duration;const total=Math.ceil(duration/SEGMENT_SECONDS);setStatus("Laddar komprimerad AI-modell…",5);const{pipeline,env}=await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2");env.allowLocalModels=false;env.useBrowserCache=true;const transcriber=await pipeline("automatic-speech-recognition","Xenova/whisper-tiny",{device:"wasm",dtype:"q8",progress_callback:p=>{if(p.status==="progress"&&Number.isFinite(p.progress))setStatus("Laddar AI-modell: "+Math.round(p.progress)+" %",5+Math.min(25,p.progress*.25))}});for(let i=0;i<total;i++){const start=i*SEGMENT_SECONDS,end=Math.min(duration,start+SEGMENT_SECONDS);setStatus(`Analyserar del ${i+1} av ${total}…`,30+65*(i/total));const samples=monoSample(decoded,start,end);const result=await transcriber(samples,{language:$("language").value,task:"transcribe",return_timestamps:true,chunk_length_s:SEGMENT_SECONDS});const local=(result.chunks||[]).map(c=>({text:(c.text||"").trim(),start:start+Number(c.timestamp?.[0]||0),end:start+Number(c.timestamp?.[1]??(end-start))})).filter(c=>c.text);if(local.length)chunks.push(...local);else if((result.text||"").trim())chunks.push({text:result.text.trim(),start,end});$("text").value=chunks.map(c=>c.text).join(" ").replace(/\s+/g," ").trim();await new Promise(r=>setTimeout(r,80))}setStatus(`Klart. ${total} delar analyserades.`,100)}catch(err){console.error(err);setStatus("Misslyckades:\n"+(err?.message||err)+"\n\nStäng andra Safari-flikar och prova igen med en kortare fil.",0)}finally{$("run").disabled=false}};
-$("txt").onclick=()=>{const value=$("text").value.trim();if(!value)return alert("Ingen text att ladda ner.");download(value,"transkribering.txt")};
-$("srt").onclick=()=>{if(!chunks.length)return alert("Ingen tidskodad transkribering finns.");const srt=chunks.map((c,i)=>`${i+1}\n${stamp(c.start)} --> ${stamp(Math.max(c.end,c.start+.5))}\n${c.text}\n`).join("\n");download(srt,"transkribering.srt")};
-if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js?v=2").catch(()=>{});
+<header><h1>SRT Synkverktyg</h1></header>
+
+<div class="wrap">
+  <section class="panel">
+    <label>1. Välj ljudfil</label>
+    <input id="audioFile" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg" />
+    <audio id="audio" controls></audio>
+
+    <label>2. Klistra in lyrics</label>
+    <textarea id="lyricsInput" placeholder="En textrad per undertextsegment..."></textarea>
+
+    <div class="row">
+      <button id="buildBtn" class="primary">Skapa rader</button>
+      <button id="clearBtn">Rensa allt</button>
+    </div>
+
+    <label>Standardlängd för sista raden</label>
+    <input id="lastDuration" type="number" min="0.5" step="0.1" value="2.5" />
+
+    <div class="row">
+      <button id="playBtn">Spela / pausa</button>
+      <button id="markBtn" class="primary">Markera nästa rad</button>
+      <button id="undoBtn">Ångra senaste</button>
+    </div>
+
+    <div class="row">
+      <button id="exportBtn" class="primary">Exportera SRT</button>
+      <button id="copyBtn">Kopiera SRT</button>
+    </div>
+
+    <div class="status" id="status">
+      Kortkommando: <span class="kbd">Mellanslag</span> = spela/pausa,
+      <span class="kbd">Enter</span> = markera nästa rad,
+      <span class="kbd">Backspace</span> = ångra.
+    </div>
+
+    <p class="hint">
+      Varje tryck sätter starttiden för nästa textrad. Föregående rad slutar automatiskt vid nästa tryck.
+      Du kan finjustera tiderna direkt i listan.
+    </p>
+  </section>
+
+  <section class="panel">
+    <div id="lyricsList" class="lyrics"></div>
+  </section>
+</div>
+
+<script>
+const audioFile = document.getElementById('audioFile');
+const audio = document.getElementById('audio');
+const lyricsInput = document.getElementById('lyricsInput');
+const lyricsList = document.getElementById('lyricsList');
+const buildBtn = document.getElementById('buildBtn');
+const clearBtn = document.getElementById('clearBtn');
+const playBtn = document.getElementById('playBtn');
+const markBtn = document.getElementById('markBtn');
+const undoBtn = document.getElementById('undoBtn');
+const exportBtn = document.getElementById('exportBtn');
+const copyBtn = document.getElementById('copyBtn');
+const lastDuration = document.getElementById('lastDuration');
+const status = document.getElementById('status');
+
+let rows = [];
+let nextIndex = 0;
+let history = [];
+
+audioFile.addEventListener('change', () => {
+  const file = audioFile.files[0];
+  if (!file) return;
+  audio.src = URL.createObjectURL(file);
+  status.textContent = `Ljudfil laddad: ${file.name}`;
+});
+
+buildBtn.addEventListener('click', buildRows);
+clearBtn.addEventListener('click', () => {
+  rows = []; nextIndex = 0; history = [];
+  lyricsList.innerHTML = '';
+  lyricsInput.value = '';
+  audio.removeAttribute('src');
+  audio.load();
+  audioFile.value = '';
+  status.textContent = 'Allt är rensat.';
+});
+
+playBtn.addEventListener('click', togglePlay);
+markBtn.addEventListener('click', markNext);
+undoBtn.addEventListener('click', undoLast);
+exportBtn.addEventListener('click', exportSrt);
+copyBtn.addEventListener('click', copySrt);
+
+function buildRows(){
+  const lines = lyricsInput.value
+    .split(/\r?\n/)
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  rows = lines.map(text => ({text, start:null, end:null}));
+  nextIndex = 0;
+  history = [];
+  renderRows();
+  status.textContent = `${rows.length} textrader skapade. Starta ljudet och markera rad för rad.`;
+}
+
+function togglePlay(){
+  if (!audio.src) return;
+  audio.paused ? audio.play() : audio.pause();
+}
+
+function markNext(){
+  if (!rows.length || nextIndex >= rows.length || !audio.src) return;
+
+  const t = audio.currentTime;
+  history.push(JSON.stringify(rows));
+
+  rows[nextIndex].start = t;
+  if (nextIndex > 0) rows[nextIndex - 1].end = t;
+
+  nextIndex++;
+  if (nextIndex === rows.length){
+    rows[rows.length - 1].end = Math.min(
+      audio.duration || Infinity,
+      t + parseFloat(lastDuration.value || 2.5)
+    );
+    status.textContent = 'Alla rader markerade. Finjustera vid behov och exportera SRT.';
+  } else {
+    status.textContent = `Markerat ${nextIndex}/${rows.length}. Nästa: ${rows[nextIndex].text}`;
+  }
+  renderRows();
+}
+
+function undoLast(){
+  if (!history.length) return;
+  rows = JSON.parse(history.pop());
+  nextIndex = rows.filter(r => r.start !== null).length;
+  status.textContent = `Ångrade senaste markeringen. Nästa rad: ${nextIndex + 1}`;
+  renderRows();
+}
+
+function renderRows(){
+  lyricsList.innerHTML = '';
+  rows.forEach((r,i) => {
+    const el = document.createElement('div');
+    el.className = 'line' + (i === nextIndex ? ' active' : '') + (r.start !== null ? ' done' : '');
+
+    const num = document.createElement('div');
+    num.className = 'num';
+    num.textContent = i + 1;
+
+    const txt = document.createElement('div');
+    txt.className = 'txt';
+    txt.textContent = r.text;
+
+    const start = document.createElement('input');
+    start.className = 'time';
+    start.value = r.start === null ? '' : formatTimeInput(r.start);
+    start.placeholder = '00:00:00.000';
+    start.addEventListener('change', () => {
+      const v = parseTimeInput(start.value);
+      if (v !== null) {
+        r.start = v;
+        if (i > 0 && rows[i-1].end === null) rows[i-1].end = v;
+      }
+      renderRows();
+    });
+
+    const end = document.createElement('input');
+    end.className = 'time';
+    end.value = r.end === null ? '' : formatTimeInput(r.end);
+    end.placeholder = '00:00:00.000';
+    end.addEventListener('change', () => {
+      const v = parseTimeInput(end.value);
+      if (v !== null) r.end = v;
+      renderRows();
+    });
+
+    const jump = document.createElement('button');
+    jump.textContent = 'Hoppa';
+    jump.addEventListener('click', () => {
+      if (r.start !== null) {
+        audio.currentTime = r.start;
+        audio.play();
+      }
+    });
+
+    el.append(num, txt, start, end, jump);
+    lyricsList.appendChild(el);
+  });
+}
+
+function buildSrt(){
+  const valid = rows.filter(r => r.start !== null);
+  return valid.map((r,i) => {
+    let end = r.end;
+    if (end === null) {
+      end = i < valid.length - 1
+        ? valid[i+1].start
+        : r.start + parseFloat(lastDuration.value || 2.5);
+    }
+    return `${i+1}\n${toSrtTime(r.start)} --> ${toSrtTime(end)}\n${r.text}`;
+  }).join('\n\n');
+}
+
+function exportSrt(){
+  const srt = buildSrt();
+  if (!srt) return;
+  const blob = new Blob([srt], {type:'application/x-subrip;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'synkroniserad_text.srt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function copySrt(){
+  const srt = buildSrt();
+  if (!srt) return;
+  await navigator.clipboard.writeText(srt);
+  status.textContent = 'SRT kopierad till urklipp.';
+}
+
+function toSrtTime(sec){
+  const ms = Math.max(0, Math.round(sec * 1000));
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const milli = ms % 1000;
+  return `${pad(h)}:${pad(m)}:${pad(s)},${String(milli).padStart(3,'0')}`;
+}
+
+function formatTimeInput(sec){
+  return toSrtTime(sec).replace(',', '.');
+}
+
+function parseTimeInput(value){
+  const m = value.trim().match(/^(\d{1,2}):(\d{2}):(\d{2})[.,](\d{1,3})$/);
+  if (!m) return null;
+  return Number(m[1])*3600 + Number(m[2])*60 + Number(m[3]) + Number(m[4].padEnd(3,'0'))/1000;
+}
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  const editing = tag === 'INPUT' || tag === 'TEXTAREA';
+
+  if (e.code === 'Space' && !editing){
+    e.preventDefault();
+    togglePlay();
+  }
+  if (e.key === 'Enter' && !editing){
+    e.preventDefault();
+    markNext();
+  }
+  if (e.key === 'Backspace' && !editing){
+    e.preventDefault();
+    undoLast();
+  }
+});
 </script>
 </body>
 </html>
